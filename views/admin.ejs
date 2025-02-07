@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin">Admin Panel</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Back To Website</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="nav-link">Welcome, <%= user.username %></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="vehicles-tab" data-bs-toggle="tab" data-bs-target="#vehicles" type="button" role="tab">
+                    <i class="fas fa-car"></i> Vehicles
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                    <i class="fas fa-users"></i> Users
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rentals-tab" data-bs-toggle="tab" data-bs-target="#rentals" type="button" role="tab">
+                    <i class="fas fa-receipt"></i> Rentals
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content" id="adminTabsContent">
+            <!-- Vehicles Tab -->
+            <div class="tab-pane fade show active" id="vehicles" role="tabpanel">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2>Vehicle Management</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+                            <i class="fas fa-plus"></i> Add New Vehicle
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Brand</th>
+                                <th>Model</th>
+                                <th>Technical Specs</th>
+                                <th>Daily Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% vehicles.forEach(vehicle => { %>
+                            <tr>
+                                <td>
+                                    <% if (vehicle.image_path) { %>
+                                        <img src="<%= vehicle.image_path %>" alt="<%= vehicle.brand %> <%= vehicle.model %>" style="max-width: 100px;">
+                                    <% } else { %>
+                                        <span class="text-muted">No image</span>
+                                    <% } %>
+                                </td>
+                                <td><%= vehicle.brand %></td>
+                                <td><%= vehicle.model %></td>
+                                <td><%= vehicle.technical_specs %></td>
+                                <td>$<%= vehicle.daily_price %>/day</td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editVehicleModal<%= vehicle.id %>">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <form action="/vehicles/<%= vehicle.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this vehicle?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- Edit Vehicle Modal -->
+                            <div class="modal fade" id="editVehicleModal<%= vehicle.id %>" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Vehicle</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="/vehicles/<%= vehicle.id %>/update" method="POST" enctype="multipart/form-data">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Brand</label>
+                                                    <input type="text" class="form-control" name="brand" value="<%= vehicle.brand %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Model</label>
+                                                    <input type="text" class="form-control" name="model" value="<%= vehicle.model %>" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Technical Specs</label>
+                                                    <textarea class="form-control" name="technical_specs" rows="3"><%= vehicle.technical_specs %></textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Daily Price ($)</label>
+                                                    <input type="number" class="form-control" name="daily_price" value="<%= vehicle.daily_price %>" step="0.01" min="0" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">New Image (Optional)</label>
+                                                    <input type="file" class="form-control" name="image" accept="image/*">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Update</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-pane fade" id="users" role="tabpanel">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2>User Management</h2>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Registration Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% users.forEach(u => { %>
+                            <tr>
+                                <td><%= u.id %></td>
+                                <td><%= u.username %></td>
+                                <td>
+                                    <% if (u.id !== user.id) { %>
+                                        <form action="/users/<%= u.id %>/update-role" method="POST" class="d-inline">
+                                            <select name="role" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                                                <option value="user" <%= u.role === 'user' ? 'selected' : '' %>>User</option>
+                                                <option value="admin" <%= u.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                                            </select>
+                                        </form>
+                                    <% } else { %>
+                                        <%= u.role %>
+                                    <% } %>
+                                </td>
+                                <td><%= new Date(u.created_at).toLocaleString('en-US') %></td>
+                                <td>
+                                    <% if (u.id !== user.id) { %>
+                                        <form action="/users/<%= u.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rentals Tab -->
+            <div class="tab-pane fade" id="rentals" role="tabpanel">
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2>Rental Management</h2>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Rental ID</th>
+                                <th>User</th>
+                                <th>Vehicle</th>
+                                <th>Rental Period</th>
+                                <th>Duration</th>
+                                <th>Total Price</th>
+                                <th>Status</th>
+                                <th>Rental Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% rentals.forEach(rental => { %>
+                            <tr>
+                                <td>#<%= rental.id %></td>
+                                <td><%= rental.username %></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <% if (rental.image_path) { %>
+                                            <img src="<%= rental.image_path %>" alt="Vehicle" style="width: 60px; height: 40px; object-fit: cover; margin-right: 10px;">
+                                        <% } %>
+                                        <%= rental.brand %> <%= rental.model %>
+                                    </div>
+                                </td>
+                                <td>
+                                    <i class="fas fa-calendar-alt text-primary"></i>
+                                    <%= new Date(rental.start_date).toLocaleDateString() %> -
+                                    <%= new Date(rental.end_date).toLocaleDateString() %>
+                                </td>
+                                <td><%= rental.days %> days</td>
+                                <td>
+                                    <span class="text-success fw-bold">
+                                        $<%= rental.total_price %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if (rental.status === 'cancellation_requested') { %>
+                                        <span class="badge bg-warning">Cancellation Requested</span>
+                                    <% } else if (rental.status === 'cancelled') { %>
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    <% } else if (rental.status === 'active') { %>
+                                        <span class="badge bg-success">Active</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <%= new Date(rental.rental_date).toLocaleString() %>
+                                    </small>
+                                </td>
+                                <td>
+                                    <% if (rental.status === 'cancellation_requested') { %>
+                                        <form action="/admin/rentals/<%= rental.id %>/approve-cancellation" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to approve this cancellation request?');">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form action="/admin/rentals/<%= rental.id %>/reject-cancellation" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to reject this cancellation request?');">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
+                                    <% } else if (rental.status === 'active') { %>
+                                        <form action="/admin/rentals/<%= rental.id %>/cancel" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this rental?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-ban"></i> Cancel Rental
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Vehicle Modal -->
+    <div class="modal fade" id="addVehicleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/vehicles" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Brand</label>
+                            <input type="text" class="form-control" name="brand" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Model</label>
+                            <input type="text" class="form-control" name="model" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Technical Specs</label>
+                            <textarea class="form-control" name="technical_specs" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Daily Price ($)</label>
+                            <input type="number" class="form-control" name="daily_price" step="0.01" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Image</label>
+                            <input type="file" class="form-control" name="image" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

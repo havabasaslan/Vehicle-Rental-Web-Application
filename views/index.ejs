@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Showcase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            margin-bottom: 40px;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .card-img-wrapper {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-img-top {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .no-image-placeholder {
+            height: 200px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+        .favorite-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+        .favorite-btn.active {
+            color: #dc3545;
+        }
+        .stats-section {
+            background: #f8f9fa;
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+        }
+        .stat-item i {
+            font-size: 2.5rem;
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
+        .stat-item h3 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-car"></i> Vehicle Showcase
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <% if (user) { %>
+                        <% if (user.role === 'admin') { %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin">
+                                    <i class="fas fa-cog"></i> Admin Panel
+                                </a>
+                            </li>
+                        <% } %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/favorites">
+                                <i class="fas fa-heart"></i> My Favorites
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/my-rentals">
+                                <i class="fas fa-history"></i> My Rentals
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <span class="nav-link">
+                                <i class="fas fa-user"></i> Welcome, <%= user.username %>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 mb-4">Welcome to Vehicle World</h1>
+            <p class="lead mb-4">Discover the newest and most popular vehicles</p>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <i class="fas fa-car"></i>
+                        <h3><%= vehicles.length %></h3>
+                        <p><%= selectedBrand ? `${selectedBrand} Vehicles` : 'Total Vehicles' %></p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <i class="fas fa-trademark"></i>
+                        <h3><%= selectedBrand ? 1 : brands.length %></h3>
+                        <p>Different Brands</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-item">
+                        <i class="fas fa-car-side"></i>
+                        <h3><%= [...new Set(vehicles.map(v => v.model))].length %></h3>
+                        <p><%= selectedBrand ? `${selectedBrand} Models` : 'Different Models' %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicles Section -->
+    <div class="container">
+        <h2 class="text-center mb-4">Our Vehicle Collection</h2>
+        
+        <!-- Filter Section -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/" method="GET" class="d-flex gap-2">
+                            <select name="brand" class="form-select">
+                                <option value="">All Brands</option>
+                                <% brands.forEach(brand => { %>
+                                    <option value="<%= brand %>" <%= selectedBrand === brand ? 'selected' : '' %>><%= brand %></option>
+                                <% }); %>
+                            </select>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <% if (selectedBrand) { %>
+                                <a href="/" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Clear
+                                </a>
+                            <% } %>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <% if (vehicles.length === 0) { %>
+                <div class="col-12 text-center">
+                    <div class="py-5">
+                        <i class="fas fa-car fa-3x text-muted mb-3"></i>
+                        <h3>No vehicles added yet</h3>
+                        <p class="text-muted">New vehicles coming soon...</p>
+                    </div>
+                </div>
+            <% } else { %>
+                <% vehicles.forEach(vehicle => { %>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-img-wrapper">
+                                <% if (vehicle.image_path) { %>
+                                    <img src="<%= vehicle.image_path %>" class="card-img-top" alt="<%= vehicle.brand %> <%= vehicle.model %>">
+                                <% } else { %>
+                                    <div class="no-image-placeholder">
+                                        <i class="fas fa-car fa-3x"></i>
+                                    </div>
+                                <% } %>
+                                <% if (user) { %>
+                                    <button class="favorite-btn <%= favorites.includes(vehicle.id) ? 'active' : '' %>" 
+                                            onclick="toggleFavorite(this, <%= vehicle.id %>)">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                <% } %>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-car-side me-2"></i>
+                                    <%= vehicle.brand %> <%= vehicle.model %>
+                                </h5>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-cogs me-2"></i>
+                                        <%= vehicle.technical_specs %>
+                                    </small>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-primary fw-bold">
+                                        <i class="fas fa-dollar-sign me-1"></i>
+                                        <%= vehicle.daily_price %>/day
+                                    </span>
+                                    <% if (user) { %>
+                                        <a href="/rent/<%= vehicle.id %>" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-key me-1"></i> Rent Now
+                                        </a>
+                                    <% } else { %>
+                                        <a href="/login" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-sign-in-alt me-1"></i> Login to Rent
+                                        </a>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } %>
+        </div>
+
+        <!-- Pagination -->
+        <% if (vehicles.length > 0) { %>
+            <div class="row">
+                <div class="col-12">
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <% if (pagination.hasPrev) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/?page=<%= pagination.page - 1 %><%= selectedBrand ? '&brand=' + selectedBrand : '' %>" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            <% } %>
+
+                            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+                                <li class="page-item <%= pagination.page === i ? 'active' : '' %>">
+                                    <a class="page-link" href="/?page=<%= i %><%= selectedBrand ? '&brand=' + selectedBrand : '' %>">
+                                        <%= i %>
+                                    </a>
+                                </li>
+                            <% } %>
+
+                            <% if (pagination.hasNext) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="/?page=<%= pagination.page + 1 %><%= selectedBrand ? '&brand=' + selectedBrand : '' %>" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-car"></i> Vehicle Showcase</h5>
+                    <p>Discover the newest and most popular vehicles.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p>&copy; <%= new Date().getFullYear() %> Vehicle Showcase. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function toggleFavorite(btn, vehicleId) {
+            if (!btn.classList.contains('active')) {
+                // Add to favorites
+                try {
+                    const response = await fetch(`/favorites/add/${vehicleId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        btn.classList.add('active');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            } else {
+                // Remove from favorites
+                try {
+                    const response = await fetch(`/favorites/remove/${vehicleId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        btn.classList.remove('active');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

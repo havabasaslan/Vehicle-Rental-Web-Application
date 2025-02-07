@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Rentals - Vehicle Showcase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .rental-card {
+            transition: transform 0.3s ease;
+        }
+        .rental-card:hover {
+            transform: translateY(-5px);
+        }
+        .vehicle-image {
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-car"></i> Vehicle Showcase
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <% if (user.role === 'admin') { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin">
+                                <i class="fas fa-cog"></i> Admin Panel
+                            </a>
+                        </li>
+                    <% } %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/favorites">
+                            <i class="fas fa-heart"></i> My Favorites
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/my-rentals">
+                            <i class="fas fa-history"></i> My Rentals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            <i class="fas fa-user"></i> Welcome, <%= user.username %>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4">
+            <i class="fas fa-history me-2"></i>
+            My Rental History
+        </h2>
+
+        <% if (rentals.length === 0) { %>
+            <div class="text-center py-5">
+                <i class="fas fa-car fa-3x text-muted mb-3"></i>
+                <h3>No rentals yet</h3>
+                <p class="text-muted">Start exploring our vehicles and rent one today!</p>
+                <a href="/" class="btn btn-primary mt-3">
+                    <i class="fas fa-car"></i> Browse Vehicles
+                </a>
+            </div>
+        <% } else { %>
+            <div class="row">
+                <% rentals.forEach(rental => { %>
+                    <div class="col-md-6 mb-4">
+                        <div class="card rental-card">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <% if (rental.vehicle.image_path) { %>
+                                        <img src="<%= rental.vehicle.image_path %>" class="img-fluid vehicle-image rounded-start" alt="<%= rental.vehicle.brand %> <%= rental.vehicle.model %>">
+                                    <% } else { %>
+                                        <div class="vehicle-image d-flex align-items-center justify-content-center bg-light">
+                                            <i class="fas fa-car fa-3x text-muted"></i>
+                                        </div>
+                                    <% } %>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <%= rental.vehicle.brand %> <%= rental.vehicle.model %>
+                                        </h5>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Booked on <%= new Date(rental.rental_date).toLocaleDateString() %>
+                                            </small>
+                                        </p>
+                                        <p class="card-text">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Rental Period:
+                                            <br>
+                                            <span class="ms-4">
+                                                <i class="fas fa-arrow-right me-1 text-success"></i>
+                                                Start: <%= new Date(rental.start_date).toLocaleDateString() %>
+                                            </span>
+                                            <br>
+                                            <span class="ms-4">
+                                                <i class="fas fa-arrow-left me-1 text-danger"></i>
+                                                End: <%= new Date(rental.end_date).toLocaleDateString() %>
+                                            </span>
+                                        </p>
+                                        <p class="card-text">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Duration: <%= rental.days %> days
+                                        </p>
+                                        <p class="card-text">
+                                            <i class="fas fa-dollar-sign me-1"></i>
+                                            Total Paid: <span class="text-primary fw-bold">$<%= rental.total_price %></span>
+                                        </p>
+                                        <p class="card-text">
+                                            <span class="badge bg-<%= rental.status === 'active' ? 'success' : 'secondary' %>">
+                                                <%= rental.status.charAt(0).toUpperCase() + rental.status.slice(1) %>
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

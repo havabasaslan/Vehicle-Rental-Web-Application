@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Application service
+  app:
+    build: .  # Build the application image using Dockerfile
+    ports:
+      - "3000:3000"  # Expose the application on port 3000
+    volumes:
+      - .:/usr/src/app  # Sync application code with the container
+      - /usr/src/app/node_modules  # Persist node_modules directory
+    environment:
+      - DB_USER=postgres  # Database username
+      - DB_PASSWORD=123456  # Database password
+      - DB_HOST=postgres-db  # Database service name
+      - DB_PORT=5432  # Database port
+      - DB_NAME=vehicle_db  # Database name
+    depends_on:
+      postgres-db:
+        condition: service_healthy  # Wait for the PostgreSQL service to be healthy
+    restart: always  # Restart the service if it crashes
+
+  # PostgreSQL database service
+  postgres-db:
+    image: postgres:14  # Use PostgreSQL version 14
+    container_name: new_postgres_db  # Set custom container name
+    ports:
+      - "5432:5432"  # Expose the database on port 5432
+    environment:
+      - POSTGRES_USER=postgres  # PostgreSQL username
+      - POSTGRES_PASSWORD=123456  # PostgreSQL password
+      - POSTGRES_DB=vehicle_db  # PostgreSQL database name
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist database data using a volume
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]  # Check if PostgreSQL is ready
+      interval: 5s  # Run the test every 5 seconds
+      timeout: 5s  # Wait for a maximum of 5 seconds for the test to complete
+      retries: 5  # Retry the test 5 times if it fails
+    restart: always  # Restart the service if it stops
+
+  # Adminer service
+  adminer:
+    image: adminer  # Use the official Adminer image
+    container_name: adminer  # Set custom container name
+    ports:
+      - "8080:8080"  # Expose Adminer on port 8080
+    restart: always  # Restart the service if it stops
+    depends_on:
+      - postgres-db  # Ensure Adminer starts after PostgreSQL service is ready
+
+# Volume definitions
+volumes:
+  postgres_data:  # Volume for PostgreSQL database data
