@@ -38,7 +38,7 @@
 
 1. Clone the project:
 ```bash
-git clone <repo-url>
+git clone https://github.com/havabasaslan/Vehicle-Rental-Web-Application.git
 cd <project-folder>
 ```
 
